@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+   
+</head>
+
+<!-- {% import 'macro/common.html' as mc %} -->
+{% from 'macro/common.html' import inp %}
+<body>
+    <div>name: {{name}}</div>
+    <hr/>
+    <span>age: {{age}}</span>
+    <hr/>
+    <div>过滤器使用：{{price | int}}</div>
+    <hr/>
+    <div>url_for: {{url_for('index', id=1101)}}</div>
+    <hr/>
+    <div>default 过滤器：{{nick_name | default('用户1', boolean=True)}}</div>
+    <div>与上边相同效果： {{nick_name or "用户1"}}</div>
+    <hr/>
+    <div>转义字符过滤 - 默认为转义 escape</div>
+    <div>不转义 - safe：{{code | safe}}</div>
+    <div>转义代码块: false代表不用转义特殊字符 / true 转义特殊字符</div>
+    <div>
+        {% autoescape false %}
+            {{code | escape}}
+        {% endautoescape %}
+    </div>
+    <h3>其它过滤器</h3>
+    绝对值:{{ -6 | abs }}<br>
+    小数:{{ 6| float }}<br>字符串:{{ 6|string }}<br>
+    格式化:{{'%s--%s'|format('我','你')}}<br>
+    长度:{{'我是九，你是三，除了你，还是你'|length}}<br>
+    最后一个:{{'我是九，你是三，除了你，还是你'|last}}<br>
+    第一个:{{'我是九，你是三，除了你，还是你'|first}}<br>
+    统计次数:{{'我是九，你是三，除了你，还是你'|wordcount }}<br>
+    替换:{{'===我是九，你是三，除了你，还是你===='|replace('我是九，你是三，除了你，还是你','拿着,这个无限')}}
+
+    <h3>自定义过滤器</h3>
+    {{"你好，老太太" | cut}}
+
+    <h4>流程控制-选择结构</h4>
+    {% if age == 18 %}
+        <p>age:{{age}}</p>
+    {% elif age == 19 %}
+        <p>age:{{age}}</p>
+    {% else %}
+    <p>100岁</p>
+    {% endif %}
+
+    <h4>流程控制-循环结构</h4>
+    {% for item in hobby %}
+        {{item}}--{{loop.index}} -- {{loop.index0}} -- {{loop.last}} -- {{loop.first}} -- {{loop.length}}<br>
+    {% endfor %}
+
+    <h5>reverse过滤器</h5>
+    {% for item in hobby | reverse %}
+        {{item}}<br>
+    {% endfor %}
+
+    <h5>keys</h5>
+    {% for item in card.keys() %}
+        {{item}}<br>
+    {% endfor %}
+
+    <h5>values</h5>
+    {% for item in card.values() %}
+        {{item}}<br>
+    {% endfor %}
+
+    <h5>items</h5>
+    {% for item in card.items() %}
+        {{item}}<br>
+    {% endfor %}
+
+    <h4>宏</h4>
+    模板中的宏跟python中的函数类似，可以传递参数，但是不能有返回值<br>
+    可以将一些经常用到的代码片段放到宏中，然后把一些不固定的值抽取出来当成一个变量
+
+    <div>
+        用户名：{{inp('text', 'name')}}
+        密码：{{inp('password', 'password')}}
+    </div>
+
+    <h5>include使用</h5>
+    <div>引入的文件直接能使用这个作用域下的所有变量</div>
+    {% include 'common/header.html' %}
+    <div>主体内容</div>
+    {% include 'common/footer.html' %}
+
+    <h5>set</h5>
+    {% set age = 20 %}
+    <div>age: {{age}}</div>
+
+    <h5>with</h5>
+    {% with nick = 'wsn' %}
+        <div>nick:{{nick}}</div>
+    {% endwith %}
+
+    <h5>静态文件引入</h5>
+    <div>js文件也可以用这种方式引入</div>
+    <div>引入css文件需要添加 rel="stylesheet"</div>
+    <img src="{{url_for('static', filename='imgs/cover.jpg')}}" alt="">
+    <script src="{{url_for('static', filename='js/test.js')}}"></script>
+    <link href="{{url_for('static', filename='css/test.css')}}" rel="stylesheet"></script>
+
+     
+</body>
+
+
+</html>

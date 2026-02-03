@@ -1,0 +1,11 @@
+{% extends 'parent.html' %}
+
+{% block content %}
+    {{super()}}
+    <div>这个是子模版</div>
+    {{ self.footer() }}
+{% endblock %}
+
+{% block footer %}
+    <footer>这个是底部信息</footer>
+{% endblock %}
