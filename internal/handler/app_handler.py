@@ -1,13 +1,16 @@
 import uuid
 from dataclasses import dataclass
+
 from injector import inject
+from langchain.agents import create_agent
+from langchain.agents.middleware import SummarizationMiddleware
 from langchain.chat_models import init_chat_model
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langgraph.checkpoint.memory import InMemorySaver
+
 from internal.exception import FailException
 from internal.schema.app_schema import CompletionReq
 from internal.service import AppsService
-from pkg.response import success_json, validate_json, success_message
+from pkg.response import success_json, success_message, validate_json
 
 
 @inject
@@ -41,17 +44,29 @@ class AppHandler:
         if not req.validate():
             return validate_json(errors=req.errors)
         # 2. 创建客户端
-        client = init_chat_model(model="deepseek-chat", model_provider="deepseek")
-        # 3. 得到请求响应，将响应返回给前端
-        prompt = ChatPromptTemplate.from_template("{query}")
-        # 4. 创建输出解析器
-        parser = StrOutputParser()
-        # 5. 创建调用链
-        chain = prompt | client | parser
 
-        content = chain.invoke({"query": req.query.data})
+        llm = init_chat_model(model="deepseek-chat")
+        config = {"configurable": {"thread_id": str(app_id)}}
 
-        return success_json(data={"content": content})
+        checkpoint = InMemorySaver()
+        agent = create_agent(
+            model=llm,
+            middleware=[
+                SummarizationMiddleware(
+                    model=llm,
+                    trigger=("tokens", 400),
+                    keep=("messages", 10),
+                    summary_prompt="",
+                )
+            ],
+            checkpointer=checkpoint,
+            system_prompt="你是一个强大的聊天机器人，能根据用户的提问回复对应的问题",
+            # response_format=ToolStrategy(ContractInfo)
+        )
+        content = agent.invoke(
+            {"messages": [{"role": "user", "content": req.query.data}]}, config=config
+        )
+        return success_json(data={"content": content["messages"][-1].content})
 
     def ping(self):
         raise FailException(message="数据未找到")
